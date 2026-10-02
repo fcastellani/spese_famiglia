@@ -1,0 +1,583 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Spese di casa</title>
+<meta name="theme-color" content="#0f5c52">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Spese di casa">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: colonna unica da 720px, barra di navigazione fissa in basso (pollice-friendly anche su PC). */
+:root {
+  --bg: #eef2f0;
+  --surface: #ffffff;
+  --surface-2: #f6f8f7;
+  --ink: #15211e;
+  --muted: #5a6a65;
+  --line: #d9e1de;
+  --accent: #0f5c52;
+  --accent-ink: #ffffff;
+  --accent-soft: #dcece8;
+  --danger: #b3261e;
+  --danger-soft: #fbe5e3;
+  --warn: #8a5a00;
+  --warn-soft: #fbefd5;
+  --t-prelievo: #a15c00;  --t-prelievo-bg: #fbecd6;
+  --t-carta: #1d4f91;     --t-carta-bg: #dfe9f7;
+  --t-bancomat: #5b3a98;  --t-bancomat-bg: #ebe3f7;
+  --t-contanti: #24733c;  --t-contanti-bg: #def0e2;
+  --font-ui: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-num: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --radius: 10px;
+  --nav-h: 64px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f1614; --surface: #17201e; --surface-2: #1d2725; --ink: #e6eeeb; --muted: #9aaba6;
+    --line: #2a3633; --accent: #5cc2b0; --accent-ink: #062520; --accent-soft: #173a35;
+    --danger: #ff8a80; --danger-soft: #3a1c1a; --warn: #f2c46b; --warn-soft: #362a12;
+    --t-prelievo: #f0b45c;  --t-prelievo-bg: #3a2a12;
+    --t-carta: #8db8f2;     --t-carta-bg: #18273d;
+    --t-bancomat: #c2a6f2;  --t-bancomat-bg: #2a2140;
+    --t-contanti: #86d39b;  --t-contanti-bg: #16301e;
+    color-scheme: dark;
+  }
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--bg); color: var(--ink);
+  font: 15px/1.45 var(--font-ui);
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+[hidden] { display: none !important; }
+button, input, select, textarea { font: inherit; color: inherit; }
+.num { font-family: var(--font-num); font-variant-numeric: tabular-nums; }
+h1, h2, h3 { margin: 0; line-height: 1.2; text-wrap: balance; }
+h2 { font-size: 1.15rem; font-weight: 600; }
+h3 { font-size: .78rem; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* ---------- Login ---------- */
+.login-wrap { min-height: 100vh; display: grid; place-items: center; padding: 24px 16px; }
+.login {
+  width: 100%; max-width: 380px; background: var(--surface); border: 1px solid var(--line);
+  border-radius: 14px; padding: 28px 22px; display: grid; gap: 16px;
+}
+.brand { display: flex; align-items: center; gap: 10px; }
+.brand-mark {
+  width: 36px; height: 36px; border-radius: 9px; background: var(--accent); color: var(--accent-ink);
+  display: grid; place-items: center; font-weight: 700; font-family: var(--font-num); font-size: 1.05rem;
+}
+.brand h1 { font-size: 1.25rem; }
+.lead { color: var(--muted); margin: 0; }
+
+/* ---------- Campi ---------- */
+.field { display: grid; gap: 6px; }
+.field > span { font-size: .85rem; font-weight: 500; color: var(--muted); }
+input[type=text], input[type=email], input[type=password], input[type=date], input[type=month], select, textarea {
+  width: 100%; min-width: 0; background: var(--surface-2); border: 1px solid var(--line);
+  border-radius: 8px; padding: 10px 12px; min-height: 44px;
+}
+input:focus, select:focus, textarea:focus { border-color: var(--accent); outline: none; box-shadow: 0 0 0 3px var(--accent-soft); }
+.amount-input { font-family: var(--font-num); font-size: 1.6rem !important; font-weight: 500; padding: 8px 12px 8px 36px !important; }
+.amount-wrap { position: relative; }
+.amount-wrap::before {
+  content: "€"; position: absolute; left: 13px; top: 50%; transform: translateY(-50%);
+  font-family: var(--font-num); font-size: 1.3rem; color: var(--muted); pointer-events: none;
+}
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 44px; padding: 0 18px; border-radius: 8px; border: 1px solid var(--line);
+  background: var(--surface); cursor: pointer; font-weight: 600;
+}
+.btn:hover { border-color: var(--muted); }
+.btn-primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.btn-primary:hover { filter: brightness(1.08); border-color: var(--accent); }
+.btn-danger { color: var(--danger); border-color: var(--danger); background: transparent; }
+.btn-danger-solid { background: var(--danger); color: #fff; border-color: var(--danger); }
+.btn-ghost { background: transparent; border-color: transparent; color: var(--muted); }
+.btn-small { min-height: 34px; padding: 0 12px; font-size: .88rem; }
+.btn[disabled] { opacity: .55; cursor: default; }
+.btn-row { display: flex; gap: 10px; flex-wrap: wrap; }
+.btn-row .btn-primary { flex: 1 1 160px; }
+
+.msg { padding: 10px 12px; border-radius: 8px; font-size: .9rem; }
+.msg-error { background: var(--danger-soft); color: var(--danger); }
+.msg-warn { background: var(--warn-soft); color: var(--warn); }
+
+/* ---------- App shell ---------- */
+.topbar {
+  position: sticky; top: 0; z-index: 5; background: var(--bg);
+  padding: calc(env(safe-area-inset-top, 0px) + 10px) 16px 10px;
+  border-bottom: 1px solid var(--line);
+}
+.topbar-inner { max-width: 720px; margin: 0 auto; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.topbar .brand { flex: 1 1 auto; min-width: 0; }
+.topbar .brand h1 { font-size: 1.05rem; }
+.period { display: flex; align-items: center; gap: 6px; }
+.period .btn { min-height: 38px; padding: 0 10px; }
+.period .period-label { min-width: 9.5em; text-transform: capitalize; font-weight: 600; }
+
+main { max-width: 720px; margin: 0 auto; padding: 16px 16px calc(var(--nav-h) + env(safe-area-inset-bottom, 0px) + 24px); }
+section.tab { display: grid; gap: 16px; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; display: grid; gap: 14px; min-width: 0; }
+
+.tabbar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 6;
+  background: var(--surface); border-top: 1px solid var(--line);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.tabbar-inner { max-width: 720px; margin: 0 auto; display: grid; grid-template-columns: repeat(5, 1fr); height: var(--nav-h); }
+.tabbar button {
+  border: 0; background: none; cursor: pointer; display: grid; place-items: center; align-content: center; gap: 3px;
+  font-size: .7rem; font-weight: 500; color: var(--muted); min-width: 0;
+}
+.tabbar svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.tabbar button[aria-current="page"] { color: var(--accent); }
+.tabbar button[aria-current="page"] svg { stroke-width: 2.2; }
+
+/* ---------- Scelta tipo ---------- */
+.types { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+@media (max-width: 460px) { .types { grid-template-columns: repeat(2, 1fr); } }
+.types label { position: relative; }
+.types input { position: absolute; opacity: 0; pointer-events: none; }
+.types .type-card {
+  display: grid; gap: 2px; padding: 10px; border-radius: 8px; border: 1.5px solid var(--line);
+  background: var(--surface-2); cursor: pointer; min-height: 60px;
+}
+.type-card b { font-size: .92rem; }
+.type-card small { color: var(--muted); font-size: .75rem; line-height: 1.25; }
+.types input:checked + .type-card { border-color: var(--tc); background: var(--tcbg); }
+.types input:checked + .type-card b { color: var(--tc); }
+.types input:focus-visible + .type-card { outline: 2px solid var(--accent); outline-offset: 2px; }
+.t-prelievo { --tc: var(--t-prelievo); --tcbg: var(--t-prelievo-bg); }
+.t-carta_credito { --tc: var(--t-carta); --tcbg: var(--t-carta-bg); }
+.t-bancomat { --tc: var(--t-bancomat); --tcbg: var(--t-bancomat-bg); }
+.t-contanti { --tc: var(--t-contanti); --tcbg: var(--t-contanti-bg); }
+
+.type-note { font-size: .85rem; color: var(--muted); margin: 0; }
+
+/* ---------- Chip categorie ---------- */
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chips label { position: relative; }
+.chips input { position: absolute; opacity: 0; pointer-events: none; }
+.chips span {
+  display: inline-block; padding: 8px 12px; border-radius: 999px; border: 1px solid var(--line);
+  background: var(--surface-2); cursor: pointer; font-size: .9rem;
+}
+.chips input:checked + span { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }
+.chips input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 460px) { .row-2 { grid-template-columns: 1fr; } }
+
+/* ---------- Elenco movimenti ---------- */
+.filters { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.filters .filtro-persona { grid-column: 1 / -1; }
+.list-total { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; color: var(--muted); font-size: .9rem; }
+.list-total b { color: var(--ink); }
+.day { display: grid; gap: 0; }
+.day-head { display: flex; justify-content: space-between; padding: 6px 2px; font-size: .8rem; color: var(--muted); font-weight: 600; text-transform: capitalize; }
+.mov {
+  display: grid; grid-template-columns: 5.6rem 1fr auto; gap: 10px; align-items: center; justify-items: start;
+  padding: 11px 12px; background: var(--surface); border: 1px solid var(--line); border-top-width: 0;
+  cursor: pointer; text-align: left; width: 100%;
+}
+.day .mov:first-of-type { border-top-width: 1px; border-radius: var(--radius) var(--radius) 0 0; }
+.day .mov:last-child { border-radius: 0 0 var(--radius) var(--radius); }
+.day .mov:only-of-type { border-radius: var(--radius); }
+.mov:hover { background: var(--surface-2); }
+.mov-main { min-width: 0; display: grid; }
+.mov-main b { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mov-main small { color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mov-main { justify-self: stretch; }
+.mov-amt { justify-self: end; text-align: right; font-weight: 500; }
+.mov-amt.is-info { color: var(--muted); }
+.pill {
+  display: inline-block; font-size: .7rem; font-weight: 600; letter-spacing: .03em; text-transform: uppercase;
+  padding: 3px 7px; border-radius: 5px; color: var(--tc); background: var(--tcbg); white-space: nowrap;
+}
+.empty { text-align: center; color: var(--muted); padding: 28px 12px; display: grid; gap: 10px; justify-items: center; }
+
+/* ---------- Riepilogo ---------- */
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.seg button { border: 0; background: var(--surface); padding: 7px 14px; cursor: pointer; font-weight: 500; color: var(--muted); }
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+.head-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.big { font-family: var(--font-num); font-size: 2.2rem; font-weight: 600; letter-spacing: -.02em; line-height: 1.1; }
+.split { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+@media (max-width: 460px) { .split { grid-template-columns: 1fr; } }
+.split > div { padding: 10px 12px; border-radius: 8px; background: var(--tcbg); display: grid; gap: 2px; }
+.split small { color: var(--tc); font-weight: 600; font-size: .78rem; }
+.split .num { font-size: 1.05rem; font-weight: 500; }
+
+.cash { display: grid; gap: 8px; }
+.cash-row { display: flex; justify-content: space-between; gap: 12px; padding: 6px 0; border-bottom: 1px dashed var(--line); }
+.cash-row:last-child { border-bottom: 0; }
+.cash-row.total { font-weight: 600; }
+
+.bars { display: grid; gap: 12px; }
+.bar { display: grid; gap: 5px; }
+.bar-top { display: flex; justify-content: space-between; gap: 12px; font-size: .92rem; }
+.bar-top span:first-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bar-track { height: 8px; border-radius: 4px; background: var(--surface-2); overflow: hidden; display: flex; }
+.bar-fill { height: 100%; }
+.bar-fill.f-carta_credito { background: var(--t-carta); }
+.bar-fill.f-bancomat { background: var(--t-bancomat); }
+.bar-fill.f-contanti { background: var(--t-contanti); }
+.bar-fill.f-nonclass { background: repeating-linear-gradient(45deg, var(--t-prelievo) 0 4px, transparent 4px 8px); }
+.bar-sub { font-size: .76rem; color: var(--muted); }
+.legend { display: flex; flex-wrap: wrap; gap: 12px; font-size: .78rem; color: var(--muted); }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
+
+/* ---------- Impostazioni ---------- */
+.cat-list { display: grid; gap: 8px; }
+.cat-item { display: grid; grid-template-columns: 1fr 4.2em auto; gap: 8px; align-items: center; }
+.cat-item input { min-height: 40px; }
+.cat-item input[type=number] { width: 100%; background: var(--surface-2); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; font-family: var(--font-num); }
+.cat-item.off input[type=text] { color: var(--muted); text-decoration: line-through; }
+.switch { display: inline-flex; align-items: center; gap: 6px; font-size: .82rem; color: var(--muted); cursor: pointer; white-space: nowrap; }
+.switch input { width: 18px; height: 18px; accent-color: var(--accent); }
+.add-cat { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
+.kv { display: grid; gap: 6px; font-size: .92rem; }
+.kv div { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.kv span { color: var(--muted); }
+
+/* ---------- Canoni ---------- */
+.msg-info { background: var(--accent-soft); color: var(--ink); }
+.due-list { display: grid; gap: 10px; }
+.due {
+  display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; align-items: center;
+  padding: 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface-2);
+}
+.due.is-late { border-color: var(--warn); }
+.due-name { font-weight: 600; min-width: 0; }
+.due-meta { grid-column: 1 / -1; font-size: .82rem; color: var(--muted); }
+.due-meta .late { color: var(--warn); font-weight: 600; }
+.due .btn-row { grid-column: 1 / -1; gap: 8px; margin-top: 6px; }
+.due .btn-row .btn-primary { flex: 0 1 auto; }
+.tag-canone {
+  display: inline-block; font-size: .68rem; font-weight: 600; letter-spacing: .04em; text-transform: uppercase;
+  padding: 1px 6px; border-radius: 4px; border: 1px solid var(--accent); color: var(--accent); margin-right: 4px; vertical-align: 1px;
+}
+.canone-form { display: grid; gap: 12px; padding: 14px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface-2); }
+.canone-form input, .canone-form select { background: var(--surface); }
+.can-list { display: grid; gap: 0; }
+.can-item {
+  display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; align-items: center; text-align: left; width: 100%;
+  padding: 11px 4px; background: none; border: 0; border-bottom: 1px solid var(--line); cursor: pointer;
+}
+.can-item:hover { background: var(--surface-2); }
+.can-item small { grid-column: 1 / -1; color: var(--muted); }
+.can-item.off b { color: var(--muted); text-decoration: line-through; }
+.fv { display: grid; gap: 10px; }
+.fv-row { display: flex; justify-content: space-between; gap: 12px; }
+.fv-track { height: 10px; border-radius: 5px; overflow: hidden; display: flex; background: var(--surface-2); }
+.fv-track .fisse { background: var(--accent); }
+.fv-track .variabili { background: var(--line); }
+.fv-row i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+
+/* ---------- Per persona ---------- */
+.people { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+.person { border: 1px solid var(--line); border-radius: 8px; padding: 14px; display: grid; gap: 10px; background: var(--surface-2); min-width: 0; }
+.person-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.person-head b { font-size: 1.05rem; }
+.person-head .num { font-size: 1.15rem; font-weight: 600; }
+.person-types { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.person-types > div { background: var(--tcbg); border-radius: 6px; padding: 6px 8px; display: grid; min-width: 0; }
+.person-types small { color: var(--tc); font-weight: 600; font-size: .7rem; }
+.person-types .num { font-size: .88rem; }
+.person-cash { border-top: 1px dashed var(--line); padding-top: 8px; display: grid; gap: 4px; }
+.person-cash .cash-row { padding: 3px 0; border: 0; font-size: .9rem; }
+.person-cash .cash-row.highlight { font-weight: 600; color: var(--t-contanti); }
+.person-cats { font-size: .8rem; color: var(--muted); }
+
+/* ---------- Conferma e toast ---------- */
+.confirm { border: 1px solid var(--danger); background: var(--danger-soft); border-radius: 8px; padding: 12px; display: grid; gap: 10px; }
+.toast {
+  position: fixed; left: 50%; transform: translateX(-50%);
+  bottom: calc(var(--nav-h) + env(safe-area-inset-bottom, 0px) + 14px); z-index: 10;
+  background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 8px; font-weight: 500;
+  max-width: calc(100% - 32px); box-shadow: 0 6px 24px rgba(0,0,0,.18);
+}
+.loading { color: var(--muted); text-align: center; padding: 18px; }
+@media (prefers-reduced-motion: no-preference) {
+  .toast { animation: rise .18s ease-out; }
+  @keyframes rise { from { opacity: 0; transform: translate(-50%, 8px); } to { opacity: 1; transform: translate(-50%, 0); } }
+}
+</style>
+</head>
+<body>
+
+<!-- ===================== LOGIN ===================== -->
+<div id="schermo-login" class="login-wrap" hidden>
+  <form id="form-login" class="login" autocomplete="on">
+    <div class="brand"><div class="brand-mark">€</div><h1>Spese di casa</h1></div>
+    <p class="lead">Accedi con l'email e la password che hai creato su Supabase.</p>
+    <label class="field"><span>Email</span><input id="login-email" type="email" autocomplete="username" required></label>
+    <label class="field"><span>Password</span><input id="login-password" type="password" autocomplete="current-password" required></label>
+    <div id="login-errore" class="msg msg-error" hidden></div>
+    <button class="btn btn-primary" type="submit" id="login-btn">Accedi</button>
+  </form>
+</div>
+
+<div id="schermo-config" class="login-wrap" hidden>
+  <div class="login">
+    <div class="brand"><div class="brand-mark">€</div><h1>Configurazione mancante</h1></div>
+    <p class="lead">Apri il file <b>config.js</b> e inserisci l'indirizzo del progetto Supabase e la chiave publishable (o anon). La guida di installazione spiega dove trovarli.</p>
+  </div>
+</div>
+
+<!-- ===================== APP ===================== -->
+<div id="schermo-app" hidden>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand"><div class="brand-mark">€</div><h1>Spese di casa</h1></div>
+      <div class="period" aria-label="Periodo">
+        <button class="btn btn-small" id="mese-prec" type="button" aria-label="Mese precedente">‹</button>
+        <button class="btn btn-small period-label" id="mese" type="button" title="Torna al mese corrente"></button>
+        <button class="btn btn-small" id="mese-succ" type="button" aria-label="Mese successivo">›</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div id="avviso-globale" class="msg msg-error" hidden></div>
+
+    <!-- ---------- NUOVA ---------- -->
+    <section class="tab" id="tab-nuova" data-tab="nuova">
+      <div class="panel" id="panel-canoni" hidden>
+        <div class="head-row"><h3>Canoni da registrare</h3><span class="type-note" id="canoni-conteggio"></span></div>
+        <div class="due-list" id="lista-scadenze"></div>
+      </div>
+
+      <form id="form-mov" class="panel" novalidate>
+        <div class="head-row">
+          <h2 id="form-titolo">Nuovo movimento</h2>
+          <button type="button" class="btn btn-ghost btn-small" id="annulla-modifica" hidden>Annulla modifica</button>
+        </div>
+        <div class="msg msg-info" id="form-canone" hidden></div>
+
+        <div class="types" role="radiogroup" aria-label="Tipo di movimento">
+          <label class="t-prelievo"><input type="radio" name="tipo" value="prelievo" id="tipo-prelievo"><span class="type-card"><b>Prelievo</b><small>Contante dal bancomat</small></span></label>
+          <label class="t-carta_credito"><input type="radio" name="tipo" value="carta_credito" id="tipo-carta"><span class="type-card"><b>Carta di credito</b><small>Pagamento con carta</small></span></label>
+          <label class="t-bancomat"><input type="radio" name="tipo" value="bancomat" id="tipo-bancomat" checked><span class="type-card"><b>Bancomat</b><small>Pagamento con debito</small></span></label>
+          <label class="t-contanti"><input type="radio" name="tipo" value="contanti" id="tipo-contanti"><span class="type-card"><b>Contanti</b><small>Spesa con soldi prelevati</small></span></label>
+        </div>
+        <p class="type-note" id="tipo-nota"></p>
+
+        <div class="row-2">
+          <label class="field"><span>Importo</span>
+            <div class="amount-wrap"><input id="importo" class="amount-input" type="text" inputmode="decimal" placeholder="0,00" autocomplete="off" required></div>
+          </label>
+          <label class="field"><span>Data</span><input id="data" type="date" required></label>
+        </div>
+
+        <div class="field">
+          <span>Eseguito da</span>
+          <div class="chips" id="chips-esecutori" role="radiogroup" aria-label="Eseguito da"></div>
+        </div>
+
+        <div class="field" id="blocco-categoria">
+          <span>Categoria</span>
+          <div class="chips" id="chips-categorie" role="radiogroup" aria-label="Categoria"></div>
+        </div>
+
+        <label class="field"><span>Descrizione (facoltativa)</span><input id="descrizione" type="text" maxlength="200" placeholder="Es. spesa Esselunga, quaderni, gita…"></label>
+
+        <div id="form-errore" class="msg msg-error" hidden></div>
+
+        <div class="btn-row">
+          <button class="btn btn-primary" type="submit" id="salva-btn">Salva</button>
+          <button class="btn btn-danger" type="button" id="elimina-btn" hidden>Elimina</button>
+        </div>
+        <div class="confirm" id="conferma-elimina" hidden>
+          <div>Eliminare definitivamente questo movimento?</div>
+          <div class="btn-row">
+            <button class="btn btn-danger-solid btn-small" type="button" id="conferma-elimina-si">Sì, elimina</button>
+            <button class="btn btn-small" type="button" id="conferma-elimina-no">Annulla</button>
+          </div>
+        </div>
+      </form>
+    </section>
+
+    <!-- ---------- MOVIMENTI ---------- -->
+    <section class="tab" id="tab-movimenti" data-tab="movimenti" hidden>
+      <div class="panel">
+        <div class="filters">
+          <label class="field"><span>Tipo</span>
+            <select id="filtro-tipo">
+              <option value="">Tutti</option>
+              <option value="prelievo">Prelievi</option>
+              <option value="carta_credito">Carta di credito</option>
+              <option value="bancomat">Bancomat</option>
+              <option value="contanti">Contanti</option>
+            </select>
+          </label>
+          <label class="field"><span>Categoria</span><select id="filtro-categoria"><option value="">Tutte</option></select></label>
+          <label class="field filtro-persona"><span>Eseguito da</span><select id="filtro-persona"><option value="">Tutti</option></select></label>
+        </div>
+        <div class="list-total" id="lista-totale"></div>
+      </div>
+      <div id="lista-movimenti" class="day-list" style="display:grid;gap:14px"></div>
+    </section>
+
+    <!-- ---------- RIEPILOGO ---------- -->
+    <section class="tab" id="tab-riepilogo" data-tab="riepilogo" hidden>
+      <div class="panel">
+        <div class="head-row">
+          <h3 id="riep-periodo">Periodo</h3>
+          <div class="seg" role="group" aria-label="Ampiezza periodo">
+            <button type="button" id="vista-mese" aria-pressed="true">Mese</button>
+            <button type="button" id="vista-anno" aria-pressed="false">Anno</button>
+          </div>
+        </div>
+        <div>
+          <div class="type-note">Uscite di cassa (prelievi + carta + bancomat)</div>
+          <div class="big" id="riep-totale">0,00 €</div>
+        </div>
+        <div class="split" id="riep-split"></div>
+      </div>
+
+      <div class="panel">
+        <h3>Per persona</h3>
+        <div class="people" id="riep-persone"></div>
+      </div>
+
+      <div class="panel">
+        <h3>Spese fisse e variabili</h3>
+        <div class="fv" id="riep-fv"></div>
+      </div>
+
+      <div class="panel">
+        <h3>Contante</h3>
+        <div class="cash" id="riep-contante"></div>
+      </div>
+
+      <div class="panel">
+        <div class="head-row"><h3>Per categoria</h3></div>
+        <div class="legend">
+          <span><i style="background:var(--t-carta)"></i>Carta</span>
+          <span><i style="background:var(--t-bancomat)"></i>Bancomat</span>
+          <span><i style="background:var(--t-contanti)"></i>Contanti</span>
+          <span><i style="background:repeating-linear-gradient(45deg,var(--t-prelievo) 0 3px,transparent 3px 6px)"></i>Contante non classificato</span>
+        </div>
+        <div class="bars" id="riep-categorie"></div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn" type="button" id="export-periodo">Esporta il periodo (CSV per Excel)</button>
+      </div>
+    </section>
+
+    <!-- ---------- CANONI ---------- -->
+    <section class="tab" id="tab-canoni" data-tab="canoni" hidden>
+      <div class="msg msg-warn" id="canoni-mancanti" hidden>Il database non ha ancora le tabelle dei canoni. Su Supabase apri <b>SQL Editor</b>, incolla il contenuto di <b>aggiornamento-canoni.sql</b> e premi <b>Run</b>, poi ricarica questa pagina.</div>
+      <div class="panel" id="panel-gestione-canoni">
+        <div class="head-row">
+          <h3>Canoni mensili</h3>
+          <button class="btn btn-small" type="button" id="nuovo-canone-btn">Nuovo canone</button>
+        </div>
+        <p class="type-note">Spese fisse che si ripetono ogni mese (affitto, mensa, abbonamenti, utenze). Ogni mese li trovi in «Nuova», pronti da registrare con un tocco.</p>
+
+        <form id="form-canone-def" class="canone-form" novalidate hidden>
+          <h2 id="canone-form-titolo">Nuovo canone</h2>
+          <div class="row-2">
+            <label class="field"><span>Nome</span><input id="can-nome" type="text" maxlength="60" placeholder="Es. Mensa Sofia, Netflix, Affitto"></label>
+            <label class="field"><span>Importo mensile</span><div class="amount-wrap"><input id="can-importo" class="amount-input" type="text" inputmode="decimal" placeholder="0,00" autocomplete="off"></div></label>
+          </div>
+          <div class="row-2">
+            <label class="field"><span>Pagato con</span>
+              <select id="can-tipo">
+                <option value="bancomat">Bancomat / addebito sul conto</option>
+                <option value="carta_credito">Carta di credito</option>
+                <option value="contanti">Contanti</option>
+              </select>
+            </label>
+            <label class="field"><span>Categoria</span><select id="can-categoria"></select></label>
+          </div>
+          <div class="row-2">
+            <label class="field"><span>Giorno del mese</span><input id="can-giorno" type="number" min="1" max="31" step="1" inputmode="numeric" placeholder="Es. 5"></label>
+            <label class="field"><span>Dal mese</span><select id="can-dal"></select></label>
+          </div>
+          <label class="field"><span>Note (facoltative)</span><input id="can-descrizione" type="text" maxlength="200"></label>
+          <label class="switch" id="can-attivo-wrap"><input type="checkbox" id="can-attivo" checked> Attivo</label>
+          <div id="canone-errore" class="msg msg-error" hidden></div>
+          <div class="btn-row">
+            <button class="btn btn-primary" type="submit" id="can-salva">Salva canone</button>
+            <button class="btn" type="button" id="can-annulla">Annulla</button>
+          </div>
+        </form>
+
+        <div class="can-list" id="lista-canoni"></div>
+        <div class="list-total" id="canoni-totale"></div>
+      </div>
+
+    </section>
+
+    <!-- ---------- IMPOSTAZIONI ---------- -->
+    <section class="tab" id="tab-impostazioni" data-tab="impostazioni" hidden>
+      <div class="panel">
+        <h3>Categorie</h3>
+        <p class="type-note">Rinomina, riordina con il numero d'ordine o disattiva. Le categorie disattivate non compaiono tra le scelte ma restano sulle spese passate.</p>
+        <div class="cat-list" id="lista-categorie"></div>
+        <form class="add-cat" id="form-categoria">
+          <input type="text" id="nuova-categoria" placeholder="Nuova categoria" maxlength="60" aria-label="Nuova categoria">
+          <button class="btn btn-primary" type="submit">Aggiungi</button>
+        </form>
+      </div>
+
+      <div class="panel">
+        <h3>Dati</h3>
+        <p class="type-note">Una copia completa di tutti i movimenti, apribile con Excel o Numbers. Conviene scaricarla ogni tanto come backup.</p>
+        <div class="btn-row"><button class="btn" type="button" id="export-tutto">Esporta tutti i movimenti (CSV)</button></div>
+      </div>
+
+      <div class="panel">
+        <h3>Account</h3>
+        <div class="kv">
+          <div><span>Collegato come</span><b id="utente-email"></b></div>
+          <div><span>Membri della famiglia</span><b id="membri-elenco"></b></div>
+          <div><span>Versione dell'app</span><b>3 (canoni, chi esegue)</b></div>
+        </div>
+        <div class="btn-row"><button class="btn" type="button" id="logout-btn">Esci</button></div>
+      </div>
+    </section>
+  </main>
+
+  <nav class="tabbar" aria-label="Sezioni">
+    <div class="tabbar-inner">
+      <button type="button" data-goto="nuova" aria-current="page">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>Nuova</button>
+      <button type="button" data-goto="movimenti">
+        <svg viewBox="0 0 24 24"><path d="M8 6h12M8 12h12M8 18h12"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/></svg>Movimenti</button>
+      <button type="button" data-goto="riepilogo">
+        <svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Riepilogo</button>
+      <button type="button" data-goto="canoni">
+        <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/><path d="M9 15.5l2 2 4-4"/></svg>Canoni</button>
+      <button type="button" data-goto="impostazioni">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>Opzioni</button>
+    </div>
+  </nav>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
+<script src="config.js?v=3"></script>
+<script src="app.js?v=3"></script>
+</body>
+</html>
